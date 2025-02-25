@@ -10,21 +10,11 @@ hints:
   DockerRequirement:
     dockerPull: frolvlad/alpine-bash
 
-inputs:  
-  md5:
-    type: File
+inputs:
+  hashes:
+    type: File[]
     inputBinding:
       position: 1
-
-  sha:
-    type: File
-    inputBinding:
-      position: 2
-
-  whirlpool:
-    type: File
-    inputBinding:
-      position: 3
 
 outputs:
   output:

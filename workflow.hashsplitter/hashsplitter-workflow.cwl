@@ -2,49 +2,73 @@
 
 class: Workflow
 
-cwlVersion: v1.0
+cwlVersion: v1.2
+
+requirements:
+  StepInputExpressionRequirement: {}
+  MultipleInputFeatureRequirement: {}
+  InlineJavascriptRequirement: {}
+  SchemaDefRequirement:
+    types:
+      - name: hash-methods
+        symbols: ["all", "sha", "md5", "whirlpool"]
+        type: enum
 
 inputs:
-  - id: input
-    type: File
+  - id: datasets
+    type: File[]
     doc: "to be hashed all the ways"
+  - id: methods
+    type:
+      type: array
+      items: hash-methods
+    default: ["all"]
 
 outputs:
   - id: output
     type: File
     outputSource: unify/output
 
-hints:
-    - md5 -> http://tesk.com
-    - sha -> http://tesk.com
 
 steps:
   - id: md5
     run: hashsplitter-md5.cwl.yml
+    when: $(inputs.methods.includes("all") || inputs.methods.includes("md5"))
     in:
-      - { id: input, source: input }
+      input:
+        source: datasets
+        valueFrom: $(inputs.input[0])
+      methods: methods
     out:
       - { id: output }
 
   - id: sha
     run: hashsplitter-sha.cwl.yml
+    when: $(inputs.methods.includes("all") || inputs.methods.includes("sha"))
     in:
-      - { id: input, source: input }
+      input:
+        source: datasets
+        valueFrom: $(inputs.input[0])
+      methods: methods
     out:
       - { id: output }
 
   - id: whirlpool
     run: hashsplitter-whirlpool.cwl.yml
+    when: $(inputs.methods.includes("all") || inputs.methods.includes("whirlpool"))
     in:
-      - { id: input, source: input }
+      input:
+        source: datasets
+        valueFrom: $(inputs.input[0])
+      methods: methods
     out:
       - { id: output }
 
   - id: unify
     run: hashsplitter-unify.cwl.yml
     in:
-      - { id: md5, source: md5/output }
-      - { id: sha, source: sha/output }
-      - { id: whirlpool, source: whirlpool/output }
+      hashes:
+        source: [md5/output, sha/output, whirlpool/output]
+        pickValue: all_non_null
     out:
       - { id: output }
